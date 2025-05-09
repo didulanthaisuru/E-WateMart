@@ -1,52 +1,120 @@
-import react from 'react'
-import {useNavigate} from 'react-router-dom'
+import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.css';
-import './css/sign_up.css'
+import './css/sign_up.css';
 import Nav from "./navbar.jsx";
 import axios from 'axios';
-import Back from './Images/SignUp.jpg'
+import Back from './Images/SignUp.jpg';
+import { useNavigate } from 'react-router-dom';
+import Spinner from './spinner.jsx'; // Import your spinner component
 
-function SignUp(){
+const SignUp = () => {
+  const [apiError, setApiError] = useState(null);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false); // Spinner state
+  const navigate = useNavigate(); 
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+    setApiError('');
+    setLoading(true); // Activate spinner when form is submitted
+
+    try {
+      const response = await axios.post('http://localhost:3000/signup', {
+        fullName,
+        email,
+        password
+      });
+      if (response.status === 201) { // Check if the signup is successful
+        setLoading(false); // Turn off spinner after process
+        navigate('/login'); // Redirect to login page after successful signup
+      }
+
       
-    return(
-        <div >
-            <Nav />
-            <div style={{ backgroundImage:`url(${Back})`, height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' ,backgroundRepeat:'no-repeat',backgroundSize:'cover'}}>
-              
-            <div className="container">
+    } catch (error) {
+      setLoading(false); // Turn off spinner if there's an error
+      setApiError('There was an error signing up, please try again.');
+    }
+  };
+
+  return (
+    <div>
+      <Nav />
+      {loading ? ( // Show spinner if loading is true
+            <Spinner />
+          ) : (
+      <div style={{
+        backgroundImage: `url(${Back})`,
+        height: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundRepeat: 'repeat-x',
+        backgroundSize: 'cover'
+      }}>
+        <div className="container">
           
-                  {/* change the form action to the correct path */}
-                  <form > 
-                    <h2>Sign Up</h2>
-                    <div className="form-group">
-                        <label htmlFor="Name">Full Name:</label>
-                        <input type="text" className="form-control" id="Name" placeholder="Enter name" name="Name" required/>
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="Email">Email:</label>
-                        <input type="email" className="form-control" id="Email" placeholder="Enter email" name="Email"  required/>
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="Pwd">Password:</label>
-                        <input type="password" className="form-control" id="Pwd" placeholder="Enter password" name="Pwd" required/>
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="CPwd">Confirm Password:</label>
-                        <input type="password" className="form-control" id="CPwd" placeholder="Enter password" name="CPwd" required/>
-                    </div>
-                    <button type="submit" className="btn btn-primary">Submit</button>
-
-                </form>
-                <div id='log'>
-                    <p>If you already hava an account</p>
-                    <a href="/login">Login</a>
-                </div>                
-            </div>
-
+            <form id="signUpForm" onSubmit={handleSubmit}>
+              <h2>Sign Up</h2>
+              {apiError && <p style={{ color: 'red' }}>{apiError}</p>}
+              <div className="form-group">
+                <label>Full Name:</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Email:</label>
+                <input
+                  type="email"
+                  className="form-control"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Password:</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Confirm Password:</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <button type="submit" className="btn btn-primary">Submit</button>
+            </form>
+          <div id='log'>
+            <p>If you already have an account</p>
+            <a href="/login">Login</a>
+          </div>
         </div>
-        </div>
-        
-    )
+      </div>)}
+    </div>
+  );
 }
 
-export default SignUp
+export default SignUp;
